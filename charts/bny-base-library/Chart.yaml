@@ -1,0 +1,32 @@
+apiVersion: v2
+name: bny-base-library
+type: library
+version: 0.5.0
+description: |
+  BNY Mellon platform Helm library chart.
+  Provides reusable named templates for all platform microservices.
+  Consumer charts declare this as a dependency and call named templates.
+
+  Templates provided:
+    bny-base.deployment        — Standard deployment with security context,
+                                  anti-affinity, Prometheus annotations
+    bny-base.service           — ClusterIP service with optional headless mode
+    bny-base.hpa               — HPA v2 with CPU+memory and scale behaviors
+    bny-base.vpa               — VPA in Off mode for recommendations
+    bny-base.pdb               — PodDisruptionBudget with configurable minAvailable
+    bny-base.serviceaccount    — ServiceAccount with OIDC IAM role annotation
+    bny-base.networkpolicy     — Default-deny with explicit allow rules
+    bny-base.configmap         — ConfigMap with environment-specific data
+    bny-base.ingress           — ALB Ingress with WAF and HTTPS annotations
+    bny-base.cronjob           — CronJob with identical security context to deployment
+
+maintainers:
+  - name: Vikas Dhamija
+    email: vikas.dhamija@bny-platform.internal
+
+keywords:
+  - bny
+  - platform
+  - library
+  - microservices
+  - kubernetes
