@@ -1,0 +1,13 @@
+{{- if .Values.rbac.rules }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.appName }}-role
+  namespace: {{ .Values.namespace | default "default" }}
+  labels:
+    app: {{ .Values.appName }}
+    app.kubernetes.io/managed-by: Helm
+    bny.com/team: {{ .Values.team | default "platform" }}
+rules:
+{{ toYaml .Values.rbac.rules | indent 2 }}
+{{- end }}

@@ -1,0 +1,24 @@
+# Staging overrides — production-like sizing, RC image tag
+environment: staging
+namespace: finance-staging
+replicas: 2
+image:
+  tag: "3.0.0-rc1"
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+pdb:
+  minAvailable: 1
+ingress:
+  enabled: true
+  host: payment-api-staging.bny-internal.com
+config:
+  logLevel: INFO

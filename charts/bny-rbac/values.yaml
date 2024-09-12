@@ -1,0 +1,22 @@
+appName: ""
+namespace: "default"
+team: "platform"
+iamRoleArn: ""
+vaultRole: ""
+
+rbac:
+  # Kubernetes RBAC rules — list of PolicyRule objects
+  # Leave empty for pods that need no K8s API access
+  rules: []
+  # Example for a service that needs to read ConfigMaps:
+  # rules:
+  #   - apiGroups: [""]
+  #     resources: ["configmaps", "secrets"]
+  #     verbs: ["get", "list", "watch"]
+
+  # Set clusterRole to bind a ClusterRole (platform services only)
+  # Example: clusterRole: "view"
+  clusterRole: ""
+
+  # Extra annotations on ServiceAccount
+  serviceAccountAnnotations: {}

@@ -1,0 +1,26 @@
+# Production overrides — full scale, hardened settings
+environment: production
+namespace: finance
+replicas: 5
+image:
+  tag: "3.0.0"
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "2000m"
+    memory: "2Gi"
+hpa:
+  enabled: true
+  minReplicas: 5
+  maxReplicas: 50
+  targetCPU: 65
+  targetMemory: 75
+pdb:
+  minAvailable: 3
+ingress:
+  enabled: true
+  host: payment-api.bny-internal.com
+config:
+  logLevel: WARN

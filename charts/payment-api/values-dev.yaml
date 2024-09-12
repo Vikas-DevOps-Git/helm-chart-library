@@ -1,0 +1,26 @@
+# Development overrides — minimal resources, debug logging, latest image
+environment: dev
+namespace: finance-dev
+replicas: 1
+image:
+  tag: "latest"
+  pullPolicy: Always
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+pdb:
+  minAvailable: 1
+ingress:
+  enabled: false
+config:
+  logLevel: DEBUG
+vpa:
+  enabled: false

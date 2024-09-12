@@ -1,0 +1,19 @@
+{{- if .Values.rbac.rules }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.appName }}-rolebinding
+  namespace: {{ .Values.namespace | default "default" }}
+  labels:
+    app: {{ .Values.appName }}
+    app.kubernetes.io/managed-by: Helm
+    bny.com/team: {{ .Values.team | default "platform" }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.appName }}-sa
+    namespace: {{ .Values.namespace | default "default" }}
+roleRef:
+  kind: Role
+  name: {{ .Values.appName }}-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

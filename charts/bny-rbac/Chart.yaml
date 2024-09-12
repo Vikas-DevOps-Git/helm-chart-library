@@ -1,0 +1,21 @@
+apiVersion: v2
+name: bny-rbac
+version: 0.3.0
+description: |
+  BNY platform RBAC subchart.
+  Creates ServiceAccount, Role, and RoleBinding per application.
+  Designed to be included as a dependency by consumer charts.
+  Enforces least-privilege Kubernetes API access per service.
+
+  The Role grants only the permissions the specific service needs.
+  Platform services get broader permissions; application pods get minimal.
+
+maintainers:
+  - name: Vikas Dhamija
+    email: vikas.dhamija@bny-platform.internal
+
+keywords:
+  - rbac
+  - serviceaccount
+  - security
+  - kubernetes

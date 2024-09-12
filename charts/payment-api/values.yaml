@@ -1,0 +1,116 @@
+# ─────────────────────────────────────────────────────────────
+# payment-api — base values
+# Override with values-dev.yaml / values-staging.yaml / values-prod.yaml
+# ─────────────────────────────────────────────────────────────
+
+appName: payment-api
+namespace: finance
+team: payments
+environment: production
+component: api
+partOf: bny-payment-platform
+
+# IAM role for OIDC pod identity (no static AWS credentials)
+iamRoleArn: "arn:aws:iam::123456789012:role/production-payment-api-pod-role"
+vaultRole: payment-api
+
+image:
+  repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/payment-api
+  tag: "3.0.0"
+  pullPolicy: Always
+
+replicas: 3
+containerPort: 8080
+metricsPort: "9090"
+metricsPath: /metrics
+healthCheckPath: /health
+readOnlyRootFilesystem: true
+
+terminationGracePeriodSeconds: 30
+
+resources:
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+readinessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 3
+
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
+
+hpa:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPU: 70
+  targetMemory: 80
+  scaleUpStabilization: 60
+  scaleDownStabilization: 300
+  scaleUpPods: 4
+  scaleDownPods: 2
+
+vpa:
+  enabled: true
+  minCPU: "100m"
+  minMemory: "128Mi"
+  maxCPU: "4"
+  maxMemory: "4Gi"
+
+pdb:
+  minAvailable: 2
+
+service:
+  port: 80
+
+ingress:
+  enabled: true
+  scheme: internal
+  host: payment-api.bny-internal.com
+  wafAclArn: "arn:aws:wafv2:us-east-1:123456789012:regional/webacl/bny-waf/xxx"
+  certificateArn: "arn:aws:acm:us-east-1:123456789012:certificate/xxx"
+
+networkPolicy:
+  enabled: true
+  additionalIngress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: transaction-api
+      ports:
+        - protocol: TCP
+          port: 8080
+  additionalEgress: []
+
+dbPort: 5432
+
+config:
+  logLevel: INFO
+  extraData:
+    PAYMENT_TIMEOUT_MS: "5000"
+    MAX_RETRIES: "3"
+    CIRCUIT_BREAKER_THRESHOLD: "50"
+
+env:
+  APP_NAME: payment-api
+  REGION: us-east-1
+
+rbac:
+  rules:
+    - apiGroups: [""]
+      resources: ["configmaps"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: [""]
+      resources: ["secrets"]
+      verbs: ["get", "list"]
+  clusterRole: ""
+  serviceAccountAnnotations:
+    vault.hashicorp.com/agent-inject: "true"
+    vault.hashicorp.com/role: "payment-api"

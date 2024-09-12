@@ -1,0 +1,16 @@
+apiVersion: v2
+name: payment-api
+version: 3.0.0
+appVersion: "3.0.0"
+description: |
+  BNY Payment API Helm chart.
+  Handles payment gateway, transaction processing, and settlement APIs.
+  Runs in the finance namespace on AWS EKS with Vault Agent secret injection.
+
+dependencies:
+  - name: bny-base-library
+    version: "0.5.0"
+    repository: "file://../bny-base-library"
+  - name: bny-rbac
+    version: "0.3.0"
+    repository: "file://../bny-rbac"
