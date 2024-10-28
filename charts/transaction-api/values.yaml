@@ -1,0 +1,103 @@
+appName: transaction-api
+namespace: finance
+team: transactions
+environment: production
+component: api
+partOf: bny-payment-platform
+
+iamRoleArn: "arn:aws:iam::123456789012:role/production-transaction-pod-role"
+vaultRole: transaction-api
+
+image:
+  repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/transaction-api
+  tag: "2.1.0"
+  pullPolicy: Always
+
+replicas: 4
+containerPort: 8082
+metricsPort: "9092"
+healthCheckPath: /health
+readOnlyRootFilesystem: true
+
+# Require on-demand nodes only — no spot for transaction processing
+nodeSelector:
+  capacity: on-demand
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "2000m"
+    memory: "2Gi"
+
+readinessProbe:
+  initialDelaySeconds: 15
+  periodSeconds: 5
+  failureThreshold: 3
+
+livenessProbe:
+  initialDelaySeconds: 45
+  periodSeconds: 10
+  failureThreshold: 3
+
+hpa:
+  enabled: true
+  minReplicas: 4
+  maxReplicas: 30
+  targetCPU: 60
+  targetMemory: 75
+  scaleUpStabilization: 30
+  scaleDownStabilization: 600
+  scaleUpPods: 6
+  scaleDownPods: 2
+
+vpa:
+  enabled: true
+  minCPU: "200m"
+  minMemory: "256Mi"
+  maxCPU: "8"
+  maxMemory: "8Gi"
+
+pdb:
+  minAvailable: 3
+
+service:
+  port: 80
+
+ingress:
+  enabled: true
+  scheme: internal
+  host: transaction-api.bny-internal.com
+  wafAclArn: "arn:aws:wafv2:us-east-1:123456789012:regional/webacl/bny-waf/xxx"
+
+networkPolicy:
+  enabled: true
+  additionalIngress: []
+  additionalEgress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: payment-api
+      ports:
+        - protocol: TCP
+          port: 8080
+
+dbPort: 5432
+
+config:
+  logLevel: INFO
+  extraData:
+    TXN_TIMEOUT_MS: "3000"
+    MAX_CONCURRENT_TXN: "1000"
+
+env:
+  APP_NAME: transaction-api
+  REGION: us-east-1
+
+rbac:
+  rules:
+    - apiGroups: [""]
+      resources: ["configmaps"]
+      verbs: ["get", "list", "watch"]
+  clusterRole: ""

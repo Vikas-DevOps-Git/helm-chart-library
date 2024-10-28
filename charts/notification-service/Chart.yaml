@@ -1,0 +1,16 @@
+apiVersion: v2
+name: notification-service
+version: 1.2.0
+appVersion: "1.2.0"
+description: |
+  BNY Notification Service Helm chart.
+  Sends email, SMS, and webhook notifications for platform events.
+  Lower resource profile than payment-api — event-driven, burst workload.
+
+dependencies:
+  - name: bny-base-library
+    version: "0.5.0"
+    repository: "file://../bny-base-library"
+  - name: bny-rbac
+    version: "0.3.0"
+    repository: "file://../bny-rbac"

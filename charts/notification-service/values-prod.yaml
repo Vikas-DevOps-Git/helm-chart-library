@@ -1,0 +1,19 @@
+environment: production
+namespace: finance
+replicas: 3
+image:
+  tag: "1.2.0"
+resources:
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+hpa:
+  minReplicas: 3
+  maxReplicas: 20
+pdb:
+  minAvailable: 2
+config:
+  logLevel: WARN

@@ -1,0 +1,16 @@
+apiVersion: v2
+name: transaction-api
+version: 2.1.0
+appVersion: "2.1.0"
+description: |
+  BNY Transaction API — high-throughput transaction processing service.
+  Stricter resource controls than payment-api, spot tolerance disabled.
+  Calls payment-api internally — NetworkPolicy allows this explicitly.
+
+dependencies:
+  - name: bny-base-library
+    version: "0.5.0"
+    repository: "file://../bny-base-library"
+  - name: bny-rbac
+    version: "0.3.0"
+    repository: "file://../bny-rbac"

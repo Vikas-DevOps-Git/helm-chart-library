@@ -1,0 +1,19 @@
+environment: dev
+namespace: finance-dev
+replicas: 1
+image:
+  tag: "latest"
+resources:
+  requests:
+    cpu: "25m"
+    memory: "32Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+hpa:
+  minReplicas: 1
+  maxReplicas: 2
+pdb:
+  minAvailable: 1
+config:
+  logLevel: DEBUG

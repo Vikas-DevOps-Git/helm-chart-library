@@ -1,0 +1,93 @@
+appName: notification-service
+namespace: finance
+team: notifications
+environment: production
+component: service
+partOf: bny-platform
+
+iamRoleArn: "arn:aws:iam::123456789012:role/production-notification-pod-role"
+vaultRole: notification-service
+
+image:
+  repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/notification-service
+  tag: "1.2.0"
+  pullPolicy: Always
+
+replicas: 2
+containerPort: 8081
+metricsPort: "9091"
+healthCheckPath: /health
+readOnlyRootFilesystem: true
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+readinessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 3
+
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPU: 70
+  targetMemory: 80
+  scaleUpStabilization: 60
+  scaleDownStabilization: 300
+  scaleUpPods: 2
+  scaleDownPods: 1
+
+vpa:
+  enabled: false
+
+pdb:
+  minAvailable: 1
+
+service:
+  port: 80
+
+ingress:
+  enabled: false
+
+networkPolicy:
+  enabled: true
+  additionalIngress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: payment-api
+      ports:
+        - protocol: TCP
+          port: 8081
+  additionalEgress:
+    - ports:
+        - port: 587
+          protocol: TCP
+
+config:
+  logLevel: INFO
+  extraData:
+    MAX_RETRIES: "3"
+    NOTIFICATION_BATCH_SIZE: "100"
+
+env:
+  APP_NAME: notification-service
+  REGION: us-east-1
+
+rbac:
+  rules:
+    - apiGroups: [""]
+      resources: ["configmaps"]
+      verbs: ["get", "list", "watch"]
+  clusterRole: ""
