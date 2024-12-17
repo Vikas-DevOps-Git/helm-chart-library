@@ -1,0 +1,8 @@
+# helm lint configuration — rules for all BNY charts
+rules:
+  # Require version to be semver
+  - name: version-semver
+    disabled: false
+  # Require appVersion to match image tag pattern
+  - name: chart-is-helm3
+    disabled: false

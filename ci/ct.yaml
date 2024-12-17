@@ -1,0 +1,13 @@
+# chart-testing (ct) configuration
+# Used by the helm/chart-testing GitHub Action
+remote: origin
+target-branch: main
+chart-dirs:
+  - charts
+excluded-charts:
+  - bny-base-library
+  - bny-rbac
+helm-extra-args: --timeout 300s
+check-version-increment: true
+validate-maintainers: false
+lint-conf: ci/lint.yaml

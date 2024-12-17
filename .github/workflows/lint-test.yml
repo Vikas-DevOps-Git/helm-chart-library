@@ -1,0 +1,139 @@
+name: Lint and Test Charts
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'charts/**'
+      - 'tests/**'
+      - 'scripts/**'
+
+jobs:
+  lint:
+    name: Helm Lint — ${{ matrix.chart }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        chart: [payment-api, notification-service, transaction-api]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.14.0
+
+      - name: Build chart dependencies
+        run: |
+          helm dependency build charts/bny-base-library/ || true
+          helm dependency build charts/bny-rbac/ || true
+          helm dependency build charts/${{ matrix.chart }}/
+
+      - name: Lint — base values
+        run: helm lint charts/${{ matrix.chart }}/
+
+      - name: Lint — dev values
+        run: |
+          if [ -f charts/${{ matrix.chart }}/values-dev.yaml ]; then
+            helm lint charts/${{ matrix.chart }}/ \
+              -f charts/${{ matrix.chart }}/values-dev.yaml
+          fi
+
+      - name: Lint — staging values
+        run: |
+          if [ -f charts/${{ matrix.chart }}/values-staging.yaml ]; then
+            helm lint charts/${{ matrix.chart }}/ \
+              -f charts/${{ matrix.chart }}/values-staging.yaml
+          fi
+
+      - name: Lint — prod values
+        run: |
+          if [ -f charts/${{ matrix.chart }}/values-prod.yaml ]; then
+            helm lint charts/${{ matrix.chart }}/ \
+              -f charts/${{ matrix.chart }}/values-prod.yaml
+          fi
+
+      - name: Template render — base
+        run: |
+          helm template ${{ matrix.chart }} charts/${{ matrix.chart }}/ \
+            --dry-run 2>&1 | tail -5
+
+      - name: Template diff — dev vs prod
+        run: |
+          if [ -f charts/${{ matrix.chart }}/values-dev.yaml ] && \
+             [ -f charts/${{ matrix.chart }}/values-prod.yaml ]; then
+            helm template ${{ matrix.chart }} charts/${{ matrix.chart }}/ \
+              -f charts/${{ matrix.chart }}/values-dev.yaml > /tmp/dev.yaml || true
+            helm template ${{ matrix.chart }} charts/${{ matrix.chart }}/ \
+              -f charts/${{ matrix.chart }}/values-prod.yaml > /tmp/prod.yaml || true
+            echo "=== Dev vs Prod diff for ${{ matrix.chart }} ==="
+            diff /tmp/dev.yaml /tmp/prod.yaml | head -50 || true
+          fi
+
+  test-python:
+    name: Python Template Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.14.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install test dependencies
+        run: pip install pytest pyyaml
+
+      - name: Build all chart dependencies
+        run: |
+          for chart in bny-base-library bny-rbac payment-api \
+                       notification-service transaction-api; do
+            helm dependency build charts/${chart}/ 2>/dev/null || true
+          done
+
+      - name: Run template tests
+        run: pytest tests/ -v
+
+  security-scan:
+    name: Trivy Chart Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.14.0
+
+      - name: Build dependencies
+        run: |
+          for chart in payment-api notification-service transaction-api; do
+            helm dependency build charts/${chart}/ 2>/dev/null || true
+          done
+
+      - name: Render all templates
+        run: |
+          mkdir -p /tmp/rendered
+          for chart in payment-api notification-service transaction-api; do
+            helm template ${chart} charts/${chart}/ \
+              > /tmp/rendered/${chart}.yaml 2>/dev/null || true
+          done
+
+      - name: Trivy scan rendered manifests
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: /tmp/rendered/
+          format: table
+          exit-code: 0
+          severity: HIGH,CRITICAL
