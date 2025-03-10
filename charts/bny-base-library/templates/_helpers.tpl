@@ -38,3 +38,6 @@ bny-base.chart — Chart name and version for helm.sh/chart label
 {{- define "bny-base.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
+
+
+{{/* v0.5.1 — added VPA, ConfigMap, CronJob, Ingress, ScaledObject templates */}}
