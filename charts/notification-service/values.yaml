@@ -91,3 +91,19 @@ rbac:
       resources: ["configmaps"]
       verbs: ["get", "list", "watch"]
   clusterRole: ""
+
+# KEDA event-driven autoscaling (replaces HPA when enabled=true)
+# SQS queue depth is a better scaling signal than CPU for notifications
+keda:
+  enabled: false       # Set true to replace HPA with KEDA ScaledObject
+  minReplicas: 0       # Scale to zero when queue empty (cost saving)
+  maxReplicas: 20
+  pollingInterval: 30
+  cooldownPeriod: 300
+  triggers:
+    - type: aws-sqs-queue
+      metadata:
+        queueURL: "https://sqs.us-east-1.amazonaws.com/123456789012/bny-notifications"
+        queueLength: "10"
+        awsRegion: us-east-1
+        identityOwner: pod
